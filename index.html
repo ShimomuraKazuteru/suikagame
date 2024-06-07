@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pygame in Browser</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+</head>
+<body>
+    <h1>Pygame in Browser</h1>
+    <canvas id="pygame-canvas" width="800" height="600"></canvas>
+    <script type="text/javascript">
+        async function main() {
+            let pyodide = await loadPyodide();
+            await pyodide.loadPackage("micropip");
+
+            // suikagame.pyの内容をロードして実行
+            const response = await fetch("suikagame.py");
+            const script = await response.text();
+            pyodide.runPythonAsync(`
+import micropip
+await micropip.install("pygame")
+
+import pygame
+import sys
+from js import document
+
+# Pygame setup
+pygame.init()
+canvas = document.getElementById("pygame-canvas")
+surface = pygame.display.set_mode((800, 600))
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    surface.fill((255, 255, 255))
+    pygame.draw.circle(surface, (255, 0, 0), (400, 300), 50)
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
+            `);
+        }
+
+        main();
+    </script>
+</body>
+</html>
